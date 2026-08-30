@@ -1,19 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silva e Sol | Do Seu Jeito</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #209984;
+            --secondary-green: #1a7a69;
+            --sol-orange: #f2853f;
+            --sand-bg: #eed09d;
+            --sand-card: #f5dfba;
+            --dark: #111827;
+            --whatsapp: #25d366;
+            --danger: #ef4444;
+        }
 
-             
-             
-             >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/thomassaraiva/silvaesol.git
-git push -u origin main
-             
-             
-             
-             
-             
-             
-             
-             
-      68" alt="image" src="https://github.com/user-attachments/assets/d6394a8f-7cd8-469c-8802-44ba70471d7e" />
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        html { scroll-behavior: smooth; }
+        body { 
+            background-color: #209984 !important;
+            color: var(--dark); 
+            padding-bottom: 75px;
+            min-height: 100vh;
+        }
+
+        .top-bar { background: var(--dark); color: #fff; text-align: center; font-size: 0.75rem; padding: 0.4rem 1rem; font-weight: 600; }
+        header { background: var(--sand-bg); position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--sol-orange); }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; max-width: 1200px; margin: 0 auto; }
+        .logo-img { height: 50px; width: auto; object-fit: contain; }
+        .header-icons { display: flex; gap: 1.2rem; font-size: 1.3rem; color: var(--dark); align-items: center; }
+
+        .cart-icon-wrap { position: relative; cursor: pointer; }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: var(--sol-orange); color: white; font-size: 0.65rem; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+        /* HERO BANNER */
+        .hero-banner { 
+            position: relative; 
+            width: 100%; 
+            height: 280px; 
+            background: url('banner_silva_e_sol_lookbook_final.jpg') center/cover; 
+            display: flex; 
+            align-items: flex-end; 
+            padding: 1.5rem; 
+            border-bottom: 3px solid var(--sand-bg);
+        }
+        @media (min-width: 768px) { .hero-banner { height: 380px; } }
+        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 15%, transparent 75%); }
+        .hero-content { position: relative; z-index: 2; color: #fff; }
+        .hero-subtitle { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--sol-orange); font-weight: bold; display: block; }
+        .hero-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 0.2rem; display: block; }
+        .hero-desc { font-size: 0.85rem; opacity: 0.95; margin-bottom: 0.8rem; display: block; }
+
+        /* CÍRCULOS DE DESTAQUE */
+        .categories-circles-section { background: linear-gradient(to bottom, #ffffff, #f9f6ef); padding: 1rem 0; border-bottom: 2px solid var(--sand-bg); }
+        .categories-scroll { display: flex; gap: 1.2rem; overflow-x: auto; padding: 0.5rem 1rem; max-width: 1200px; margin: 0 auto; scrollbar-width: none; }
+        .categories-scroll::-webkit-scrollbar { display: none; }
+        .category-circle-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--dark); flex-shrink: 0; width: 75px; text-align: center; }
+        .circle-img-wrap { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 2px solid var(--sol-orange); background: var(--sand-card); margin-bottom: 0.4rem; }
+        .circle-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .category-circle-item span { font-size: 0.75rem; font-weight: 700; line-height: 1.1; }
+
+        .section-products { padding: 1.5rem 1rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        @media (min-width: 768px) { .products-grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; } }
+
+        .product-card { background: var(--sand-card); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; border: 2px solid var(--sand-bg); }
+        .product-img-link { display: block; position: relative; width: 100%; padding-top: 120%; background: #e5c898; }
+        .product-img-link img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .product-badge { position: absolute; top: 8px; left: 8px; background: var(--sol-orange); color: #fff; font-size: 0.65rem; font-weight: bold; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; z-index: 2; }
+        .product-details { padding: 0.8rem; display: flex; flex-direction: column; gap: 0.3rem; flex: 1; justify-content: space-between; }
+        .product-title-link { 
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            color: var(--dark); 
+            text-decoration: none; 
+            height: 2.5em; 
+            overflow: hidden; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            line-clamp: 2;
+        }
+        .product-price { font-size: 1.1rem; font-weight: 800; color: var(--secondary-green); }
+        .btn-add-cart { background: var(--primary-green); color: white; border: none; padding: 0.6rem; border-radius: 8px; font-weight: bold; font-size: 0.78rem; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 0.4rem; cursor: pointer; width: 100%; text-decoration: none; }
+
+        /* MODAL SACOLA */
+        .cart-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: flex-end; backdrop-filter: blur(4px); }
+        .cart-modal.active { display: flex; }
+        .cart-drawer { background: var(--sand-card); width: 100%; max-width: 400px; height: 100%; display: flex; flex-direction: column; padding: 1.5rem; box-shadow: -5px 0 25px rgba(0,0,0,0.3); }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--sand-bg); padding-bottom: 1rem; margin-bottom: 1rem; }
+        .btn-close-cart { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        .cart-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+        .cart-item { display: flex; gap: 12px; align-items: center; background: #fff; padding: 0.8rem; border-radius: 10px; border: 1px solid var(--sand-bg); }
+        .cart-item-img { width: 55px; height: 55px; border-radius: 6px; object-fit: cover; }
+        .cart-item-details { flex: 1; }
+        .cart-item-title { font-size: 0.85rem; font-weight: 600; }
+        .cart-item-price { font-size: 0.9rem; font-weight: 800; color: var(--primary-green); }
+        .cart-item-variations { font-size: 0.75rem; color: #555; }
+        .cart-footer { border-top: 2px solid var(--sand-bg); padding-top: 1rem; margin-top: 1rem; }
+        .cart-total-row { display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem; }
+        .btn-checkout-whatsapp { width: 100%; background: var(--whatsapp); color: white; border: none; padding: 0.85rem; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        .mobile-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--sand-bg); border-top: 2px solid var(--sol-orange); display: flex; justify-content: space-around; padding: 0.6rem 0; z-index: 1000; }
+        .mobile-nav-item { display: flex; flex-direction: column; align-items: center; color: var(--dark); text-decoration: none; font-size: 0.72rem; font-weight: 600; gap: 3px; }
+        .mobile-nav-item.active { color: var(--primary-green); font-weight: 800; }
+        .mobile-nav-item i { font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">ENTREGAS PARA TODO O BRASIL | SILVA E SOL DO SEU JEITO</div>
+
+    <header>
+        <nav>
+            <a href="index.html"><img src="logo.jpg.jpg" alt="Silva e Sol" class="logo-img"></a>
+            <div class="header-icons">
+                <div class="cart-icon-wrap" onclick="toggleCartModal()">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count" id="cart-badge">0</span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- BANNER DINÂMICO -->
+    <section class="hero-banner" id="hero-banner-element">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <span class="hero-subtitle" id="hero-sub-text">Nova Coleção</span>
+            <h1 class="hero-title" id="hero-title-text">Sabor do Verão</h1>
+            <p class="hero-desc" id="hero-desc-text">Moda praia, sungas e peças leves no seu estilo.</p>
+        </div>
+    </section>
+
+    <!-- CÍRCULOS DE CATEGORIAS -->
+    <section class="categories-circles-section">
+        <div class="categories-scroll" id="home-circles-container"></div>
+    </section>
+
+    <!-- SEÇÃO DE PRODUTOS / CATEGORIAS NA HOME -->
+    <section class="section-products" id="produtos-destaque">
+        <!-- O script preencherá as categorias aqui automaticamente -->
+    </section>
+
+    <!-- MODAL DO CARRINHO -->
+    <div class="cart-modal" id="cart-modal">
+        <div class="cart-drawer">
+            <div class="cart-header">
+                <h3><i class="fa-solid fa-bag-shopping" style="color: var(--primary-green);"></i> Sua Sacola</h3>
+                <button class="btn-close-cart" onclick="toggleCartModal()">&times;</button>
+            </div>
+            <div class="cart-body" id="cart-items-container"></div>
+            <div class="cart-footer">
+                <div class="cart-total-row">
+                    <span>Total:</span>
+                    <span id="cart-total-value" style="color: var(--primary-green);">R$ 0,00</span>
+                </div>
+                <button class="btn-checkout-whatsapp" onclick="enviarPedidoWhatsApp()">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> Finalizar Pedido no Whats
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="mobile-nav">
+        <a href="index.html" class="mobile-nav-item active"><i class="fa-solid fa-house"></i><span>Início</span></a>
+        <a href="produtos.html" class="mobile-nav-item"><i class="fa-solid fa-layer-group"></i><span>Produtos</span></a>
+        <a href="javascript:void(0)" class="mobile-nav-item" onclick="toggleCartModal()"><i class="fa-solid fa-bag-shopping"></i><span>Sacola</span></a>
+        <a href="admin.html" class="mobile-nav-item"><i class="fa-solid fa-lock"></i><span>Admin</span></a>
+    </nav>
+
+    <!-- SCRIPT DE LEITURA DO BANNER NA HOME -->
+    <script src="script.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Carrega Banner Salvo no Admin
+                const bannerSalvo = JSON.parse(localStorage.getItem('banner_silva_sol'));
+                if (bannerSalvo) {
+                    const heroBanner = document.getElementById('hero-banner-element');
+                    if (heroBanner && bannerSalvo.img) {
+                        heroBanner.style.backgroundImage = `url('${bannerSalvo.img}')`;
+                    }
+
+                    ['subtitulo', 'titulo', 'descricao'].forEach(campo => {
+                        const el = document.getElementById(`hero-${campo === 'subtitulo' ? 'sub' : campo}-text`);
+                        if (el) {
+                            if (bannerSalvo[campo] && bannerSalvo[campo].trim() !== '') {
+                                el.innerText = bannerSalvo[campo];
+                                el.style.display = 'block';
+                            } else {
+                                el.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+
+                // Carrega Círculos Salvos no Admin
+                const circulosSalvos = JSON.parse(localStorage.getItem('circulos_silva_sol')) || [
+                    { nome: 'Promoções', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Promocoes' },
+                    { nome: 'Sungas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Sungas' },
+                    { nome: 'Regatas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Regatas' },
+                    { nome: 'Bolsas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Bolsas' },
+                    { nome: 'Kimono', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Kimono' },
+                    { nome: 'Kits', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Kits' }
+                ];
+
+                const containerCirculos = document.getElementById('home-circles-container');
+                if (containerCirculos) {
+                    containerCirculos.innerHTML = circulosSalvos.map(c => `
+                        <a href="${c.link || 'produtos.html'}" class="category-circle-item">
+                            <div class="circle-img-wrap">
+                                <img src="${c.img || 'logo.jpg.jpg'}" alt="${c.nome}">
+                            </div>
+                            <span>${c.nome}</span>
+                        </a>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error("Erro ao carregar banner ou círculos:", e);
+            }
+        });
+    </script>
+</body>
+</html>

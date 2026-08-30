@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo | Silva e Sol</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #209984;
+            --primary-orange: #f2853f;
+            --dark: #111827;
+            --light: #f3f4f6;
+            --danger: #ef4444;
+            --blue: #2563eb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--light); color: var(--dark); min-height: 100vh; }
+
+        .login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, var(--dark), #1f2937); padding: 1rem; }
+        .login-card { background: #fff; padding: 2rem; border-radius: 12px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .login-card h2 { color: var(--primary-green); margin-bottom: 1.5rem; font-size: 1.4rem; }
+
+        .admin-dashboard { display: none; padding-bottom: 80px; }
+
+        header { background: var(--dark); color: #fff; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        header a, header button { color: #fff; text-decoration: none; font-weight: 600; background: none; border: none; cursor: pointer; font-size: 0.9rem; }
+
+        .container { max-width: 1000px; margin: 1.5rem auto; padding: 0 1rem; }
+        .card { background: #fff; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .card h2 { margin-bottom: 1.2rem; color: var(--primary-green); font-size: 1.3rem; border-bottom: 2px solid var(--light); padding-bottom: 0.5rem; }
+
+        .form-group { margin-bottom: 1rem; text-align: left; }
+        label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; outline: none; }
+        textarea { resize: vertical; min-height: 80px; }
+        input[type="file"] { padding: 0.4rem; background: #f9fafb; cursor: pointer; font-size: 0.8rem; }
+
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 0.5rem; }
+        .checkbox-group input { width: auto; cursor: pointer; transform: scale(1.2); }
+
+        .photos-grid-input { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        @media (min-width: 600px) { .photos-grid-input { grid-template-columns: repeat(4, 1fr); } }
+
+        .preview-img { width: 100%; height: 75px; object-fit: cover; border-radius: 6px; margin-top: 5px; display: none; border: 2px solid var(--primary-orange); }
+
+        .form-actions { display: flex; gap: 10px; margin-top: 15px; }
+        button.btn-submit { background: var(--primary-green); color: #fff; border: none; padding: 0.8rem 1.2rem; border-radius: 6px; font-size: 0.95rem; font-weight: bold; cursor: pointer; flex: 1; }
+        button.btn-cancel { background: #6b7280; color: #fff; border: none; padding: 0.8rem 1.2rem; border-radius: 6px; font-size: 0.95rem; font-weight: bold; cursor: pointer; display: none; }
+
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; min-width: 600px; }
+        th, td { padding: 0.8rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 0.9rem; }
+        th { background: #f9fafb; color: #4b5563; font-weight: 700; }
+        .product-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 6px; }
+
+        .btn-edit { background: var(--blue); color: white; border: none; padding: 0.4rem 0.7rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; margin-right: 4px; }
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 0.4rem 0.7rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="login-screen" id="login-screen">
+        <div class="login-card">
+            <h2>Área Restrita</h2>
+            <form id="login-form">
+                <div class="form-group"><label>Usuário</label><input type="text" id="usuario" required></div>
+                <div class="form-group"><label>Senha</label><input type="password" id="senha" required></div>
+                <button type="submit" class="btn-submit">Entrar no Painel</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="admin-dashboard" id="admin-dashboard">
+        <header>
+            <h1>Painel Admin - Silva e Sol</h1>
+            <div>
+                <a href="index.html" style="margin-right: 15px;"><i class="fa-solid fa-house"></i> Ir para o Site</a>
+                <button type="button" id="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+            </div>
+        </header>
+
+        <div class="container">
+            
+            <!-- 1. PERSONALIZAR BANNER -->
+            <div class="card">
+                <h2><i class="fa-solid fa-image" style="color:var(--primary-orange);"></i> Personalizar Banner da Home</h2>
+                <form id="form-banner">
+                    <div class="form-group">
+                        <label>Foto do Banner (Opcional - Do Computador):</label>
+                        <input type="file" id="banner-file" accept="image/*">
+                        <img id="banner-preview" class="preview-img" alt="Prévia Banner">
+                    </div>
+                    <div class="form-group"><label>Subtítulo (Opcional):</label><input type="text" id="banner-subtitulo" placeholder="Ex: Nova Coleção"></div>
+                    <div class="form-group"><label>Título (Opcional):</label><input type="text" id="banner-titulo" placeholder="Ex: Sabor do Verão"></div>
+                    <div class="form-group"><label>Descrição (Opcional):</label><input type="text" id="banner-desc" placeholder="Ex: Moda praia no seu estilo"></div>
+                    <button type="submit" class="btn-submit" style="background: var(--primary-orange);"><i class="fa-solid fa-save"></i> Salvar Banner</button>
+                </form>
+            </div>
+
+            <!-- 2. GERENCIAR CÍRCULOS DE DESTAQUE -->
+            <div class="card">
+                <h2><i class="fa-solid fa-circle-dot" style="color:var(--primary-green);"></i> Círculos de Destaque (Início)</h2>
+                <form id="form-circle">
+                    <input type="hidden" id="circle-index">
+                    <div class="form-group"><label>Nome da Categoria</label><input type="text" id="circle-nome" placeholder="Ex: Promoções, Sungas..." required></div>
+                    <div class="form-group">
+                        <label>Foto do Círculo (Do Computador)</label>
+                        <input type="file" id="circle-file" accept="image/*">
+                        <img id="circle-preview" class="preview-img" alt="Prévia Círculo">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="btn-save-circle" class="btn-submit">Adicionar Círculo</button>
+                        <button type="button" id="btn-cancel-circle" class="btn-cancel" onclick="resetCircleForm()">Cancelar</button>
+                    </div>
+                </form>
+                <h3 style="margin-top: 1.5rem; font-size: 1rem; color: #4b5563;">Círculos Atuais</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Foto</th><th>Nome</th><th>Ações</th></tr></thead>
+                        <tbody id="admin-circles-list"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. PRODUTOS COM 4 FOTOS DO COMPUTADOR -->
+            <div class="card">
+                <h2 id="form-product-title"><i class="fa-solid fa-box"></i> Adicionar Novo Produto</h2>
+                <form id="product-form">
+                    <input type="hidden" id="prod-id">
+                    <div class="form-group"><label>Nome do Produto</label><input type="text" id="prod-nome" required></div>
+                    <div class="form-group"><label>Descrição</label><textarea id="prod-descricao"></textarea></div>
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <select id="prod-categoria">
+                            <option value="Promoções">Promoções</option>
+                            <option value="Sungas">Sungas</option>
+                            <option value="Regatas">Regatas</option>
+                            <option value="Bolsas">Bolsas</option>
+                            <option value="Kimono">Kimono</option>
+                            <option value="Kits">Kits</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Preço (R$)</label><input type="number" step="0.01" id="prod-preco" required></div>
+
+                    <!-- 4 CAIXAS DE FOTOS -->
+                    <div class="form-group">
+                        <label>Fotos do Produto (Foto 1 é Obrigatória / 2, 3 e 4 Opcionais)</label>
+                        <div class="photos-grid-input">
+                            <div>
+                                <label style="font-size:0.75rem;">Foto 1 (Principal)*</label>
+                                <input type="file" id="prod-file-1" accept="image/*">
+                                <img id="preview-1" class="preview-img" alt="Foto 1">
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem;">Foto 2</label>
+                                <input type="file" id="prod-file-2" accept="image/*">
+                                <img id="preview-2" class="preview-img" alt="Foto 2">
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem;">Foto 3</label>
+                                <input type="file" id="prod-file-3" accept="image/*">
+                                <img id="preview-3" class="preview-img" alt="Foto 3">
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem;">Foto 4</label>
+                                <input type="file" id="prod-file-4" accept="image/*">
+                                <img id="preview-4" class="preview-img" alt="Foto 4">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="prod-destaque" checked>
+                        <label for="prod-destaque" style="margin-bottom:0;">Destacar na Página Inicial</label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="btn-save-prod" class="btn-submit">Salvar Produto</button>
+                        <button type="button" id="btn-cancel-edit" class="btn-cancel" onclick="resetProductForm()">Cancelar</button>
+                    </div>
+                </form>
+
+                <h3 style="margin-top: 1.5rem; font-size: 1rem; color: #4b5563;">Produtos Cadastrados</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Foto</th><th>Nome</th><th>Preço</th><th>Qtd Fotos</th><th>Home</th><th>Ações</th></tr></thead>
+                        <tbody id="admin-product-list"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const USER_CORRETO = "admin";
+        const SENHA_CORRETA = "silva123";
+
+        function mostrarPainel() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            carregarDadosBannerNoForm();
+            renderAdminCircles();
+            renderAdminTable();
+        }
+
+        if (sessionStorage.getItem('silva_sol_logado') === 'true') { mostrarPainel(); }
+
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (document.getElementById('usuario').value.trim() === USER_CORRETO && document.getElementById('senha').value.trim() === SENHA_CORRETA) {
+                sessionStorage.setItem('silva_sol_logado', 'true');
+                mostrarPainel();
+            } else { alert('Usuário ou senha incorretos!'); }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => { sessionStorage.removeItem('silva_sol_logado'); location.reload(); });
+
+        function comprimirEConverterParaBase64(fileInput, maxWidth = 600) {
+            return new Promise((resolve) => {
+                if (!fileInput || !fileInput.files || !fileInput.files[0]) return resolve(null);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
+                        canvas.width = w; canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.70));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            });
+        }
+
+        // Pré-visualização das 4 fotos do produto
+        [1, 2, 3, 4].forEach(i => {
+            const input = document.getElementById(`prod-file-${i}`);
+            const preview = document.getElementById(`preview-${i}`);
+            input.addEventListener('change', function() {
+                if (this.files[0]) {
+                    preview.src = URL.createObjectURL(this.files[0]);
+                    preview.style.display = 'block';
+                }
+            });
+        });
+
+        // --- CÍRCULOS DE DESTAQUE ---
+        function getCirculos() {
+            return JSON.parse(localStorage.getItem('circulos_silva_sol')) || [
+                { nome: 'Promoções', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Promocoes' },
+                { nome: 'Sungas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Sungas' },
+                { nome: 'Regatas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Regatas' },
+                { nome: 'Bolsas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Bolsas' },
+                { nome: 'Kimono', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Kimono' },
+                { nome: 'Kits', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Kits' }
+            ];
+        }
+
+        const inputCircleFile = document.getElementById('circle-file');
+        const previewCircle = document.getElementById('circle-preview');
+        inputCircleFile.addEventListener('change', function() { if (this.files[0]) { previewCircle.src = URL.createObjectURL(this.files[0]); previewCircle.style.display = 'block'; } });
+
+        function renderAdminCircles() {
+            const circulos = getCirculos();
+            document.getElementById('admin-circles-list').innerHTML = circulos.map((c, index) => `
+                <tr>
+                    <td><img src="${c.img}" class="product-thumb"></td>
+                    <td><strong>${c.nome}</strong></td>
+                    <td>
+                        <button type="button" class="btn-edit" onclick="prepararEdicaoCircle(${index})"><i class="fa-solid fa-pen"></i></button>
+                        <button type="button" class="btn-delete" onclick="deletarCircle(${index})"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.prepararEdicaoCircle = function(index) {
+            const c = getCirculos()[index];
+            document.getElementById('circle-index').value = index;
+            document.getElementById('circle-nome').value = c.nome;
+            if (c.img) { previewCircle.src = c.img; previewCircle.style.display = 'block'; }
+            document.getElementById('btn-save-circle').innerText = 'Salvar Alteração';
+            document.getElementById('btn-cancel-circle').style.display = 'block';
+        }
+
+        window.resetCircleForm = function() {
+            document.getElementById('form-circle').reset();
+            document.getElementById('circle-index').value = '';
+            previewCircle.style.display = 'none';
+            document.getElementById('btn-save-circle').innerText = 'Adicionar Círculo';
+            document.getElementById('btn-cancel-circle').style.display = 'none';
+        }
+
+        document.getElementById('form-circle').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            let circulos = getCirculos();
+            const index = document.getElementById('circle-index').value;
+            const nome = document.getElementById('circle-nome').value.trim();
+            const base64 = await comprimirEConverterParaBase64(inputCircleFile, 300);
+            const imgFinal = base64 || (index !== '' ? circulos[index].img : 'logo.jpg.jpg');
+            const novo = { nome, img: imgFinal, link: `produtos.html?cat=${nome.replace(/\s+/g, '')}` };
+
+            if (index !== '') circulos[index] = novo; else circulos.push(novo);
+            localStorage.setItem('circulos_silva_sol', JSON.stringify(circulos));
+            resetCircleForm(); renderAdminCircles();
+        });
+
+        window.deletarCircle = function(index) {
+            if (confirm('Excluir círculo?')) {
+                let circulos = getCirculos(); circulos.splice(index, 1);
+                localStorage.setItem('circulos_silva_sol', JSON.stringify(circulos)); renderAdminCircles();
+            }
+        }
+
+        // --- BANNER ---
+        const inputBanner = document.getElementById('banner-file');
+        const previewBanner = document.getElementById('banner-preview');
+        inputBanner.addEventListener('change', function() { if (this.files[0]) { previewBanner.src = URL.createObjectURL(this.files[0]); previewBanner.style.display = 'block'; } });
+
+        document.getElementById('form-banner').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const atual = JSON.parse(localStorage.getItem('banner_silva_sol')) || {};
+            const base64Banner = await comprimirEConverterParaBase64(inputBanner, 1000);
+            localStorage.setItem('banner_silva_sol', JSON.stringify({
+                img: base64Banner || atual.img || '',
+                subtitulo: document.getElementById('banner-subtitulo').value.trim(),
+                titulo: document.getElementById('banner-titulo').value.trim(),
+                descricao: document.getElementById('banner-desc').value.trim()
+            }));
+            alert('Banner atualizado!');
+        });
+
+        function carregarDadosBannerNoForm() {
+            const b = JSON.parse(localStorage.getItem('banner_silva_sol'));
+            if (b) {
+                if (b.img) { previewBanner.src = b.img; previewBanner.style.display = 'block'; }
+                document.getElementById('banner-subtitulo').value = b.subtitulo || '';
+                document.getElementById('banner-titulo').value = b.titulo || '';
+                document.getElementById('banner-desc').value = b.descricao || '';
+            }
+        }
+
+        // --- PRODUTOS ---
+        function getProdutos() { return JSON.parse(localStorage.getItem('produtos_silva_sol')) || []; }
+        function setProdutos(p) { localStorage.setItem('produtos_silva_sol', JSON.stringify(p)); }
+
+        window.toggleDestaque = function(id) {
+            setProdutos(getProdutos().map(p => p.id == id ? { ...p, emDestaque: !p.emDestaque } : p));
+            renderAdminTable();
+        }
+
+        function renderAdminTable() {
+            const produtos = getProdutos();
+            const tbody = document.getElementById('admin-product-list');
+            if (produtos.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum produto.</td></tr>'; return; }
+            tbody.innerHTML = produtos.map(p => {
+                const fotosArr = p.fotos || [p.img];
+                return `
+                    <tr>
+                        <td><img src="${fotosArr[0]}" class="product-thumb"></td>
+                        <td><strong>${p.nome}</strong></td>
+                        <td>R$ ${parseFloat(p.preco).toFixed(2)}</td>
+                        <td>${fotosArr.length} foto(s)</td>
+                        <td><input type="checkbox" ${p.emDestaque ? 'checked' : ''} onchange="window.toggleDestaque('${p.id}')"></td>
+                        <td>
+                            <button type="button" class="btn-edit" onclick="window.prepararEdicao(${p.id})"><i class="fa-solid fa-pen"></i></button>
+                            <button type="button" class="btn-delete" onclick="window.deletarProduto(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.prepararEdicao = function(id) {
+            const p = getProdutos().find(item => item.id == id);
+            if (!p) return;
+            document.getElementById('prod-id').value = p.id;
+            document.getElementById('prod-nome').value = p.nome;
+            document.getElementById('prod-descricao').value = p.descricao || '';
+            document.getElementById('prod-categoria').value = p.categoria || 'Promoções';
+            document.getElementById('prod-preco').value = p.preco;
+            document.getElementById('prod-destaque').checked = p.emDestaque ?? true;
+
+            const fotosArr = p.fotos || [p.img];
+            [1, 2, 3, 4].forEach(i => {
+                const prev = document.getElementById(`preview-${i}`);
+                if (fotosArr[i-1]) { prev.src = fotosArr[i-1]; prev.style.display = 'block'; }
+                else { prev.style.display = 'none'; }
+            });
+
+            document.getElementById('form-product-title').innerText = 'Editar Produto';
+            document.getElementById('btn-save-prod').innerText = 'Salvar Alterações';
+            document.getElementById('btn-cancel-edit').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.resetProductForm = function() {
+            document.getElementById('product-form').reset();
+            document.getElementById('prod-id').value = '';
+            [1, 2, 3, 4].forEach(i => document.getElementById(`preview-${i}`).style.display = 'none');
+            document.getElementById('form-product-title').innerText = 'Adicionar Novo Produto';
+            document.getElementById('btn-save-prod').innerText = 'Salvar Produto';
+            document.getElementById('btn-cancel-edit').style.display = 'none';
+        }
+
+        document.getElementById('product-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('prod-id').value;
+            const nome = document.getElementById('prod-nome').value.trim();
+            const descricao = document.getElementById('prod-descricao').value.trim();
+            const categoria = document.getElementById('prod-categoria').value;
+            const preco = parseFloat(document.getElementById('prod-preco').value);
+            const emDestaque = document.getElementById('prod-destaque').checked;
+
+            let produtos = getProdutos();
+            const existente = id ? produtos.find(p => p.id == id) : null;
+            const fotosAntigas = existente ? (existente.fotos || [existente.img]) : [];
+
+            let novasFotos = [];
+            for (let i = 1; i <= 4; i++) {
+                const b64 = await comprimirEConverterParaBase64(document.getElementById(`prod-file-${i}`), 600);
+                if (b64) { novasFotos.push(b64); }
+                else if (fotosAntigas[i-1]) { novasFotos.push(fotosAntigas[i-1]); }
+            }
+
+            if (novasFotos.length === 0) { alert('Adicione pelo menos a Foto 1 principal!'); return; }
+
+            const dados = {
+                id: id ? parseInt(id) : Date.now(),
+                nome, descricao, categoria, preco, emDestaque,
+                img: novasFotos[0],
+                fotos: novasFotos
+            };
+
+            if (id) {
+                produtos = produtos.map(p => p.id == id ? dados : p);
+                alert('Produto atualizado!');
+            } else {
+                produtos.unshift(dados);
+                alert('Produto cadastrado com sucesso!');
+            }
+            setProdutos(produtos); resetProductForm(); renderAdminTable();
+        });
+
+        window.deletarProduto = function(id) {
+            if (confirm('Deseja excluir?')) { setProdutos(getProdutos().filter(p => p.id != id)); renderAdminTable(); }
+        }
+    </script>
+</body>
+</html>
