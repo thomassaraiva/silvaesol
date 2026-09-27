@@ -1,0 +1,21 @@
+# Variáveis de ambiente e arquivos sensíveis
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependências e caches
+node_modules/
+.npm
+dist/
+build/
+
+# Logs e depuração
+*.log
+npm-debug.log*
+
+# Sistema e IDEs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

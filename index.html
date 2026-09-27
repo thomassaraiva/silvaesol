@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Silva e Sol | Do Seu Jeito</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
     <style>
         :root {
             --primary-green: #209984;
@@ -173,24 +176,24 @@
         <a href="admin.html" class="mobile-nav-item"><i class="fa-solid fa-lock"></i><span>Admin</span></a>
     </nav>
 
-    <!-- SCRIPT DE LEITURA DO BANNER NA HOME -->
+    <!-- SCRIPTS DA LOJA -->
     <script src="script.js"></script>
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 1. Carrega Banner do Supabase
             try {
-                // Carrega Banner Salvo no Admin
-                const bannerSalvo = JSON.parse(localStorage.getItem('banner_silva_sol'));
-                if (bannerSalvo) {
+                const banner = await buscarBannerSupabase();
+                if (banner && banner.img) {
                     const heroBanner = document.getElementById('hero-banner-element');
-                    if (heroBanner && bannerSalvo.img) {
-                        heroBanner.style.backgroundImage = `url('${bannerSalvo.img}')`;
+                    if (heroBanner) {
+                        heroBanner.style.backgroundImage = `url('${banner.img}')`;
                     }
 
                     ['subtitulo', 'titulo', 'descricao'].forEach(campo => {
                         const el = document.getElementById(`hero-${campo === 'subtitulo' ? 'sub' : campo}-text`);
                         if (el) {
-                            if (bannerSalvo[campo] && bannerSalvo[campo].trim() !== '') {
-                                el.innerText = bannerSalvo[campo];
+                            if (banner[campo] && banner[campo].trim() !== '') {
+                                el.innerText = banner[campo];
                                 el.style.display = 'block';
                             } else {
                                 el.style.display = 'none';
@@ -198,20 +201,16 @@
                         }
                     });
                 }
+            } catch (e) {
+                console.error("Erro ao carregar banner do Supabase:", e);
+            }
 
-                // Carrega Círculos Salvos no Admin
-                const circulosSalvos = JSON.parse(localStorage.getItem('circulos_silva_sol')) || [
-                    { nome: 'Promoções', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Promocoes' },
-                    { nome: 'Sungas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Sungas' },
-                    { nome: 'Regatas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Regatas' },
-                    { nome: 'Bolsas', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Bolsas' },
-                    { nome: 'Kimono', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Kimono' },
-                    { nome: 'Kits', img: 'logo.jpg.jpg', link: 'produtos.html?cat=Kits' }
-                ];
-
+            // 2. Carrega Círculos de Destaque do Supabase
+            try {
+                const circulos = await buscarCirculosSupabase();
                 const containerCirculos = document.getElementById('home-circles-container');
-                if (containerCirculos) {
-                    containerCirculos.innerHTML = circulosSalvos.map(c => `
+                if (containerCirculos && circulos.length > 0) {
+                    containerCirculos.innerHTML = circulos.map(c => `
                         <a href="${c.link || 'produtos.html'}" class="category-circle-item">
                             <div class="circle-img-wrap">
                                 <img src="${c.img || 'logo.jpg.jpg'}" alt="${c.nome}">
@@ -221,7 +220,7 @@
                     `).join('');
                 }
             } catch (e) {
-                console.error("Erro ao carregar banner ou círculos:", e);
+                console.error("Erro ao carregar círculos do Supabase:", e);
             }
         });
     </script>

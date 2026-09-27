@@ -3,20 +3,43 @@
 const STORAGE_PRODUTOS = 'produtos_silva_sol';
 const STORAGE_CARRINHO = 'carrinho_silva_sol';
 
-function getProdutosDaLoja() {
+let produtosLojaCache = null;
+
+async function getProdutosDaLoja() {
+    if (produtosLojaCache) return produtosLojaCache;
     try {
-        return JSON.parse(localStorage.getItem(STORAGE_PRODUTOS)) || [];
+        if (typeof buscarProdutosSupabase === 'function') {
+            const produtosSupabase = await buscarProdutosSupabase();
+            if (produtosSupabase && produtosSupabase.length > 0) {
+                produtosLojaCache = produtosSupabase;
+                return produtosLojaCache;
+            }
+        }
+    } catch (e) {
+        console.warn("Aviso ao buscar do Supabase, tentando cache local:", e);
+    }
+
+    try {
+        produtosLojaCache = JSON.parse(localStorage.getItem(STORAGE_PRODUTOS)) || [];
+        return produtosLojaCache;
     } catch (e) {
         return [];
     }
 }
 
 // Renderiza as categorias na Página Inicial (index.html)
-function renderizarProdutosHome() {
+async function renderizarProdutosHome() {
     const containerHome = document.getElementById('produtos-destaque');
     if (!containerHome) return;
 
-    const produtos = getProdutosDaLoja();
+    containerHome.innerHTML = `
+        <div style="padding: 3rem; text-align: center; color: #fff;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--sol-orange); margin-bottom: 0.8rem;"></i>
+            <p>Carregando coleções...</p>
+        </div>
+    `;
+
+    const produtos = await getProdutosDaLoja();
     
     if (produtos.length === 0) {
         containerHome.innerHTML = '<div style="padding: 3rem; text-align: center; color: #fff;"><h2>Nenhum produto cadastrado ainda.</h2><p>Acesse o Painel Admin para adicionar peças!</p></div>';
@@ -28,6 +51,7 @@ function renderizarProdutosHome() {
 
     categoriasDesejadas.forEach(cat => {
         const produtosDaCat = produtos.filter(p => {
+            if (!p.emDestaque && p.emDestaque !== undefined) return false;
             const catProd = (p.categoria || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
             const catAlvo = cat.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
             return catProd === catAlvo;
@@ -40,7 +64,7 @@ function renderizarProdutosHome() {
                         <h2 class="section-title" style="font-size: 1.4rem; font-weight: 800; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">
                             <i class="fa-solid fa-fire" style="color: var(--sol-orange); margin-right: 6px;"></i> ${cat}
                         </h2>
-                        <a href="produtos.html?cat=${cat}" style="color: #fff; font-size: 0.85rem; font-weight: 700; text-decoration: none; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px;">Ver Todos &rarr;</a>
+                        <a href="produto.html?cat=${encodeURIComponent(cat)}" style="color: #fff; font-size: 0.85rem; font-weight: 700; text-decoration: none; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px;">Ver Todos &rarr;</a>
                     </div>
                     <div class="products-grid">
                         ${produtosDaCat.map(p => {
@@ -70,11 +94,18 @@ function renderizarProdutosHome() {
     containerHome.innerHTML = htmlConteudo || '<p style="color:#fff; text-align:center; padding:2rem;">Nenhum produto cadastrado nas categorias principais.</p>';
 }
 
-function renderizarProdutosPaginaProdutos() {
+async function renderizarProdutosPaginaProdutos() {
     const gridProdutos = document.getElementById('todos-os-produtos-grid');
     if (!gridProdutos) return;
 
-    const produtos = getProdutosDaLoja();
+    gridProdutos.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: #fff;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--sol-orange); margin-bottom: 0.8rem;"></i>
+            <p>Carregando catálogo...</p>
+        </div>
+    `;
+
+    const produtos = await getProdutosDaLoja();
     const params = new URLSearchParams(window.location.search);
     const catFiltro = params.get('cat');
 
@@ -84,7 +115,7 @@ function renderizarProdutosPaginaProdutos() {
     }
 
     if (produtosFiltrados.length === 0) {
-        gridProdutos.innerHTML = '<p style="color: #fff; grid-column: span 4; text-align: center; padding: 3rem;">Nenhum produto encontrado nesta categoria.</p>';
+        gridProdutos.innerHTML = '<p style="color: #fff; grid-column: 1 / -1; text-align: center; padding: 3rem;">Nenhum produto encontrado nesta categoria.</p>';
         return;
     }
 

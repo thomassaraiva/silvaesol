@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalhes do Produto | Silva e Sol</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
     <style>
         :root {
             --primary-green: #209984;
@@ -143,27 +146,58 @@
 
     <script src="script.js"></script>
     <script>
-        // Lógica de Variações na Página de Produtos
-        window.addEventListener('DOMContentLoaded', () => {
+        // Lógica de Variações e Fotos na Página de Detalhes
+        window.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('product-detail-section');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 4rem; text-align: center; color: #fff;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.5rem; color: var(--sol-orange); margin-bottom: 1rem;"></i>
+                    <p>Carregando detalhes do produto...</p>
+                </div>
+            `;
+
             const params = new URLSearchParams(window.location.search);
             const produtoId = params.get('id');
 
-            const produtos = JSON.parse(localStorage.getItem('produtos_silva_sol')) || [];
-            // Se nenhum ID foi passado, pega o primeiro produto como exemplo
-            const produto = produtos.find(p => p.id == produtoId) || produtos[0];
+            let produto = null;
+            if (produtoId && typeof buscarProdutoPorIdSupabase === 'function') {
+                try {
+                    produto = await buscarProdutoPorIdSupabase(produtoId);
+                } catch (e) {
+                    console.error("Erro ao buscar produto por ID:", e);
+                }
+            }
 
-            const container = document.getElementById('product-detail-section');
+            if (!produto) {
+                const todos = await getProdutosDaLoja();
+                produto = (produtoId ? todos.find(p => p.id == produtoId) : null) || todos[0];
+            }
 
             if (!produto) {
                 container.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #fff; padding: 3rem;"><h2>Nenhum produto encontrado. Cadastre um pelo painel Admin!</h2></div>`;
                 return;
             }
 
+            const fotos = (produto.fotos && produto.fotos.length > 0) ? produto.fotos : [produto.img || 'logo.jpg.jpg'];
+
             container.innerHTML = `
                 <div class="product-gallery">
                     <div class="main-img-wrap">
-                        <img src="${produto.img || 'logo.jpg.jpg'}" alt="${produto.nome}">
+                        <img id="main-product-img" src="${fotos[0]}" alt="${produto.nome}">
                     </div>
+                    ${fotos.length > 1 ? `
+                        <div class="gallery-thumbs" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px;">
+                            ${fotos.map((f, idx) => `
+                                <img src="${f}" 
+                                     alt="Miniatura ${idx + 1}" 
+                                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 2px solid ${idx === 0 ? 'var(--sol-orange)' : '#ddd'}; cursor: pointer; transition: 0.2s;" 
+                                     onclick="trocarFotoPrincipal(this, '${f}')"
+                                >
+                            `).join('')}
+                        </div>
+                    ` : ''}
                 </div>
 
                 <div class="product-info-card">
@@ -172,7 +206,7 @@
                     <div class="product-price">R$ ${parseFloat(produto.preco).toFixed(2)}</div>
                     <p class="product-desc">${produto.descricao || 'Peça exclusiva confeccionada com alto padrão de qualidade Silva e Sol.'}</p>
 
-                    <!-- SELETOR DE MODELO (Estampa, Liso, Bicolor, Tricolor) -->
+                    <!-- SELETOR DE MODELO -->
                     <div class="variation-group">
                         <label class="variation-label">Modelo:</label>
                         <div class="variation-options" id="opt-modelo">
@@ -205,34 +239,45 @@
                         </div>
                     </div>
 
-                    <button class="btn-buy-now" onclick="adicionarComVariacoes('${produto.id}', '${produto.nome}', ${produto.preco}, '${produto.img}')">
+                    <button class="btn-buy-now" onclick="adicionarComVariacoes('${produto.id}', '${produto.nome}', ${produto.preco}, '${fotos[0]}')">
                         <i class="fa-solid fa-bag-shopping"></i> Adicionar à Sacola
                     </button>
                 </div>
             `;
         });
 
+        window.trocarFotoPrincipal = function(thumbEl, url) {
+            const mainImg = document.getElementById('main-product-img');
+            if (mainImg) {
+                mainImg.src = url;
+            }
+            document.querySelectorAll('.gallery-thumbs img').forEach(img => {
+                img.style.borderColor = '#ddd';
+            });
+            thumbEl.style.borderColor = 'var(--sol-orange)';
+        };
+
         // Função para alternar a seleção visual dos botões de variação
         window.selectVariation = function(button, grupo) {
             const container = button.parentElement;
             container.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
             button.classList.add('selected');
-        }
+        };
 
         // Função que pega as escolhas do cliente e joga na sacola
         window.adicionarComVariacoes = function(id, nome, preco, img) {
             const modeloSel = document.querySelector('#opt-modelo .opt-btn.selected')?.innerText || 'Liso';
             const tamanhoSel = document.querySelector('#opt-tamanho .opt-btn.selected')?.innerText || 'M';
             const corSel = document.querySelector('#opt-cor .opt-btn.selected')?.innerText || 'Padrão';
+            const fotoAtual = document.getElementById('main-product-img')?.src || img;
 
-            // Chama a função global do script.js para adicionar com as variações escolhidas
             if (typeof adicionarAoCarrinhoComOpcoes === 'function') {
-                adicionarAoCarrinhoComOpcoes(id, nome, preco, img, modeloSel, tamanhoSel, corSel);
+                adicionarAoCarrinhoComOpcoes(id, nome, preco, fotoAtual, modeloSel, tamanhoSel, corSel);
             } else {
                 alert(`Adicionado: ${nome} (${modeloSel}, Tam: ${tamanhoSel}, Cor: ${corSel})`);
                 toggleCartModal();
             }
-        }
+        };
     </script>
 </body>
 </html>

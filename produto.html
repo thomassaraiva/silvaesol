@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produtos | Silva e Sol</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
     <style>
         :root {
             --primary-green: #209984;
@@ -170,5 +173,89 @@
     </nav>
 
     <script src="script.js"></script>
+    <script>
+        let catalogoTodos = [];
+
+        async function carregarCatalogo() {
+            const grid = document.getElementById('produtos-catalogo-completo');
+            if (!grid) return;
+
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: #fff;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--sol-orange); margin-bottom: 0.8rem;"></i>
+                    <p>Carregando catálogo do Supabase...</p>
+                </div>
+            `;
+
+            catalogoTodos = await getProdutosDaLoja();
+
+            // Verifica se veio filtro por URL ?cat=...
+            const params = new URLSearchParams(window.location.search);
+            const catUrl = params.get('cat');
+            if (catUrl) {
+                const btns = document.querySelectorAll('.filter-btn');
+                let achouBtn = false;
+                btns.forEach(b => {
+                    if (b.innerText.toLowerCase().trim() === catUrl.toLowerCase().trim()) {
+                        b.classList.add('active');
+                        achouBtn = true;
+                    } else {
+                        b.classList.remove('active');
+                    }
+                });
+                renderizarGrade(catUrl);
+            } else {
+                renderizarGrade('Todas');
+            }
+        }
+
+        function renderizarGrade(categoria) {
+            const grid = document.getElementById('produtos-catalogo-completo');
+            if (!grid) return;
+
+            let filtrados = catalogoTodos;
+            if (categoria && categoria !== 'Todas') {
+                const catNorm = categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                filtrados = catalogoTodos.filter(p => {
+                    const prodCatNorm = (p.categoria || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    return prodCatNorm === catNorm;
+                });
+            }
+
+            if (filtrados.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: #fff;"><h3>Nenhum produto encontrado nesta categoria.</h3></div>';
+                return;
+            }
+
+            grid.innerHTML = filtrados.map(p => {
+                const fotos = p.fotos || [p.img];
+                return `
+                    <div class="product-card">
+                        <a href="produtos.html?id=${p.id}" class="product-img-link">
+                            <span class="product-badge">${p.categoria || 'Coleção'}</span>
+                            <img src="${fotos[0] || 'logo.jpg.jpg'}" alt="${p.nome}">
+                        </a>
+                        <div class="product-details">
+                            <a href="produtos.html?id=${p.id}" class="product-title-link">${p.nome}</a>
+                            <div class="product-price">R$ ${parseFloat(p.preco || 0).toFixed(2)}</div>
+                            <a href="produtos.html?id=${p.id}" class="btn-add-cart" style="text-decoration: none; text-align: center;">
+                                <i class="fa-solid fa-eye"></i> Ver Detalhes
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.filtrarCategoria = function(cat, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderizarGrade(cat);
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            carregarCatalogo();
+        });
+    </script>
 </body>
 </html>
